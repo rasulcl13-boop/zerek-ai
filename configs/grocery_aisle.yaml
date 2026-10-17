@@ -1,0 +1,35 @@
+# Продуктовый: торговый проход. Видео — Supervision GROCERY_STORE (статичная камера в проходе).
+# Сценарий «покупателю нужна помощь»: долго стоит у полки, рядом нет сотрудника.
+site:
+  id: grocery-aisle-demo
+  name: "Продуктовый · проход"
+  vertical: grocery
+
+cameras:
+  - id: aisle
+    source: data/videos/grocery-store.mp4
+    process_fps: 6
+    zones:
+      - id: aisle_1
+        kind: shelf
+        label: "Проход «Консервы»"
+        polygon: [[0.36, 0.56], [0.66, 0.56], [0.97, 1.00], [0.33, 1.00]]
+    lines:
+      - id: aisle_entry
+        label: "Вход в проход"
+        start: [0.33, 0.78]
+        end: [0.80, 0.78]
+
+staff:
+  zone: null
+
+rules:
+  - id: needs_help
+    when: {all: [{dwell_max: aisle_1, who: customer, op: ">=", value: 10},   # прод: 90
+                 {occupancy: aisle_1, who: staff, op: "==", value: 0}]}
+    cooldown_s: 120
+    severity: info
+    message: "Проход «Консервы»: покупатель у полки {aisle_1.dwell}, сотрудника рядом нет"
+    notify: [console, telegram]
+
+output: {dir: out}

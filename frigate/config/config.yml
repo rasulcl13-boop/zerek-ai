@@ -1,0 +1,54 @@
+# Frigate — NVR и раздача RTSP (go2rtc) для store-vision.
+# Демо: три тестовых ролика крутятся по кругу как RTSP-камеры.
+# Реальная камера: замените ffmpeg:/demo/… на rtsp://user:pass@IP:554/<путь основного потока>.
+mqtt:
+  enabled: false
+
+go2rtc:
+  ffmpeg:
+    loop: "-re -stream_loop -1 -i {input}"    # демо: файл по кругу как «камера»
+  streams:
+    checkout:
+      - ffmpeg:/demo/pexels-4249560.mp4#input=loop#video=copy
+    aisle:
+      - ffmpeg:/demo/grocery-store.mp4#input=loop#video=copy
+    entrance:
+      - ffmpeg:/demo/caviar-front.mp4#input=loop#video=copy
+    # Пример реальной камеры Hikvision/Dahua (основной поток в запись, второй — в анализ):
+    # kassa_real:
+    #   - rtsp://admin:{FRIGATE_RTSP_PASSWORD}@192.168.1.64:554/Streaming/Channels/101
+    # kassa_real_sub:
+    #   - rtsp://admin:{FRIGATE_RTSP_PASSWORD}@192.168.1.64:554/Streaming/Channels/102
+
+# Детекцию делает store-vision (RF-DETR); Frigate здесь — запись и рестрим.
+# На проде с Intel N100 можно включить и детектор Frigate (openvino) для его UI/событий.
+detect:
+  enabled: false
+
+record:
+  enabled: true
+  continuous:
+    days: 0.1    # демо: ~2,4 ч (3 зацикленных ролика пишут ~3 ГБ/ч); для магазина — 7–30 дней
+  motion:
+    days: 0.1
+cameras:
+  checkout:
+    ffmpeg:
+      inputs:
+        - path: rtsp://127.0.0.1:8554/checkout
+          input_args: preset-rtsp-restream
+          roles: [record]
+  aisle:
+    ffmpeg:
+      inputs:
+        - path: rtsp://127.0.0.1:8554/aisle
+          input_args: preset-rtsp-restream
+          roles: [record]
+  entrance:
+    ffmpeg:
+      inputs:
+        - path: rtsp://127.0.0.1:8554/entrance
+          input_args: preset-rtsp-restream
+          roles: [record]
+
+version: 0.18-0

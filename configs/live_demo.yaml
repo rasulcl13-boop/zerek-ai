@@ -1,0 +1,298 @@
+# Живой режим: камеры приходят RTSP-рестримом из Frigate (go2rtc :8554).
+# Сейчас это зацикленные демо-ролики; для реального магазина поменяйте потоки в frigate/config/config.yml,
+# а здесь — только зоны. Пороги — ДЕМО (короткие ролики), продовые значения см. configs/grocery_checkout.yaml.
+# SAHI-нарезка (cameras[].slicing) — для камер, где важен подсчёт людей в толпе (Mall: ошибка 4,6 → 3,1).
+# На камере входа выключена: на CAVIAR она ухудшает счётчик двери (8 % → 19 % ошибок, ×4 время).
+# Включить: в камере добавить  slicing: {grid: [2, 2], overlap: 0.2}
+site:
+  id: live-demo
+  name: Магазин «Демо» · live
+  vertical: grocery
+  timezone: Asia/Almaty
+cameras:
+- id: checkout
+  source: rtsp://127.0.0.1:8554/checkout
+  process_fps: 4
+  anchor: center
+  zones:
+  - id: cashier_1
+    kind: staff_area
+    label: Касса 1 · кассир
+    polygon:
+    - - 0.4
+      - 0.35
+    - - 0.54
+      - 0.35
+    - - 0.54
+      - 0.75
+    - - 0.4
+      - 0.75
+  - id: queue_1
+    kind: queue
+    label: Касса 1 · очередь
+    polygon:
+    - - 0.06
+      - 0.3
+    - - 0.37
+      - 0.3
+    - - 0.37
+      - 0.8
+    - - 0.06
+      - 0.8
+  - id: queue_2
+    kind: queue
+    label: Касса 2 · клиент
+    polygon:
+    - - 0.56
+      - 0.22
+    - - 0.71
+      - 0.22
+    - - 0.71
+      - 0.62
+    - - 0.56
+      - 0.62
+  - id: cashier_2
+    kind: staff_area
+    label: Касса 2 · кассир
+    polygon:
+    - - 0.72
+      - 0.22
+    - - 0.93
+      - 0.22
+    - - 0.93
+      - 0.62
+    - - 0.72
+      - 0.62
+  frigate_camera: checkout
+- id: aisle
+  source: rtsp://127.0.0.1:8554/aisle
+  process_fps: 3
+  zones:
+  - id: aisle_1
+    kind: shelf
+    label: Проход «Консервы»
+    polygon:
+    - - 0.36
+      - 0.56
+    - - 0.66
+      - 0.56
+    - - 0.97
+      - 1.0
+    - - 0.33
+      - 1.0
+  lines:
+  - id: aisle_entry
+    label: Вход в проход
+    start:
+    - 0.33
+    - 0.78
+    end:
+    - 0.8
+    - 0.78
+  frigate_camera: aisle
+- id: entrance
+  source: rtsp://127.0.0.1:8554/entrance
+  process_fps: 5
+  resize_width: 384
+  zones:
+  - id: shop_floor
+    kind: generic
+    label: Торговый зал
+    polygon:
+    - - 0.56
+      - 0.2
+    - - 0.86
+      - 0.2
+    - - 0.86
+      - 0.47
+    - - 0.56
+      - 0.47
+  - id: storefront
+    kind: storefront
+    label: Перед витриной
+    polygon:
+    - - 0.1
+      - 0.44
+    - - 0.56
+      - 0.44
+    - - 0.56
+      - 0.6
+    - - 0.1
+      - 0.6
+  lines:
+  - id: door
+    label: Вход в магазин
+    start:
+    - 0.47
+    - 0.47
+    end:
+    - 0.88
+    - 0.47
+    hysteresis: 0.015
+  frigate_camera: entrance
+detector:
+  model: rfdetr-medium
+  confidence: 0.4
+  cache: false
+tracker:
+  type: botsort
+  lost_track_buffer_s: 2
+staff:
+  uniform:
+    hsv_ranges:
+    - lower:
+      - 35
+      - 90
+      - 50
+      upper:
+      - 85
+      - 255
+      - 255
+    min_ratio: 0.2
+    min_samples: 3
+  zone:
+    zones:
+    - cashier_1
+    - cashier_2
+    min_s: 4
+machines:
+  checkout_lane:
+    initial: idle
+    states:
+      idle:
+        label: нет клиентов
+      serving:
+        label: обслуживание
+      unattended:
+        label: клиент ждёт, кассира нет
+        counts_as_service_wait: true
+        alerts:
+        - after_s: 3
+          severity: warning
+          message: '{object}: клиент ждёт {wait}, кассира нет'
+          notify:
+          - console
+          - telegram
+        - after_s: 8
+          severity: critical
+          message: '{object}: без кассира уже {wait} — менеджеру'
+          notify:
+          - console
+          - telegram
+    transitions:
+    - from:
+      - idle
+      - unattended
+      to: serving
+      when:
+        all:
+        - occupancy: $wait
+          who: customer
+          op: '>='
+          value: 1
+        - occupancy: $service
+          who: staff
+          op: '>='
+          value: 1
+      for_s: 1
+    - from:
+      - idle
+      - serving
+      to: unattended
+      when:
+        all:
+        - occupancy: $wait
+          who: customer
+          op: '>='
+          value: 1
+        - occupancy: $service
+          who: staff
+          op: ==
+          value: 0
+      for_s: 2
+    - from:
+      - serving
+      - unattended
+      to: idle
+      when:
+        occupancy: $wait
+        who: customer
+        op: ==
+        value: 0
+      for_s: 2
+objects:
+- id: Касса 1
+  machine: checkout_lane
+  camera: checkout
+  owner: кассир смены А
+  zones:
+    wait: queue_1
+    service: cashier_1
+- id: Касса 2
+  machine: checkout_lane
+  camera: checkout
+  owner: кассир смены Б
+  zones:
+    wait: queue_2
+    service: cashier_2
+rules:
+- id: long_queue
+  when:
+    occupancy: queue_1
+    who: customer
+    op: '>='
+    value: 2
+  for_s: 3
+  cooldown_s: 300
+  severity: warning
+  message: 'Касса 1: в очереди {queue_1.customer} чел. уже {duration} — откройте вторую кассу'
+  notify:
+  - console
+  - telegram
+- id: long_wait
+  when:
+    dwell_max: queue_1
+    who: customer
+    op: '>='
+    value: 6
+  cooldown_s: 600
+  severity: info
+  message: 'Касса 1: клиент стоит в очереди {queue_1.dwell}'
+  notify:
+  - console
+- id: needs_help
+  when:
+    all:
+    - dwell_max: aisle_1
+      who: customer
+      op: '>='
+      value: 10
+    - occupancy: aisle_1
+      who: staff
+      op: ==
+      value: 0
+  cooldown_s: 120
+  severity: info
+  message: 'Проход «Консервы»: покупатель у полки {aisle_1.dwell}, сотрудника рядом нет'
+  notify:
+  - console
+  - telegram
+- id: window_shopper
+  when:
+    dwell_max: storefront
+    who: customer
+    op: '>='
+    value: 5
+  cooldown_s: 30
+  severity: info
+  message: Прохожий смотрит на витрину {storefront.dwell} — кандидат в покупатели
+  notify:
+  - console
+frigate:
+  url: http://127.0.0.1:5000
+  clip_before_s: 10
+  clip_after_s: 10
+output:
+  dir: out
+  telegram:
+    enabled: false

@@ -1,0 +1,59 @@
+# Магазин одежды: вход, витрина, стойки, примерочные. Пороги — продовые.
+site:
+  id: fashion-example
+  name: "Одежда · зал"
+  vertical: fashion
+
+cameras:
+  - id: floor
+    source: rtsp://user:pass@192.168.1.20:554/Streaming/Channels/102
+    process_fps: 5
+    zones:
+      - {id: rack_women, kind: shelf, label: "Стойка «Женское»", polygon: [[0.05, 0.40], [0.45, 0.40], [0.45, 0.90], [0.05, 0.90]]}
+      - {id: fitting_wait, kind: fitting_room, label: "У примерочных", polygon: [[0.60, 0.40], [0.95, 0.40], [0.95, 0.90], [0.60, 0.90]]}
+      - {id: counter, kind: staff_area, label: "Касса", polygon: [[0.45, 0.05], [0.70, 0.05], [0.70, 0.30], [0.45, 0.30]]}
+    lines:
+      - {id: door, label: "Вход", start: [0.10, 0.95], end: [0.50, 0.95]}
+
+staff:
+  uniform:
+    hsv_ranges: [{lower: [100, 120, 60], upper: [130, 255, 255]}]   # синие футболки консультантов
+    min_ratio: 0.25
+  zone: {zones: [counter], min_s: 60}
+
+machines:
+  # Зона, где покупателю может понадобиться помощь. Контакт = консультант в зоне ≥ 5 с.
+  help_zone:
+    initial: empty
+    states:
+      empty: {label: "никого"}
+      browsing: {label: "смотрят"}
+      needs_help:
+        label: "ждёт консультанта"
+        counts_as_service_wait: true
+        alerts:
+          - {after_s: 0,  severity: info,    message: "{object}: покупатель {wait} без консультанта", notify: [console, telegram]}
+          - {after_s: 60, severity: warning, message: "{object}: покупатель ждёт уже {wait} ({owner})", notify: [console, telegram]}
+      helped: {label: "консультант рядом"}
+    transitions:
+      - {from: empty, to: browsing, when: {occupancy: $area, who: customer, op: ">=", value: 1}, for_s: 3}
+      - {from: browsing, to: needs_help,
+         when: {all: [{dwell_max: $area, who: customer, op: ">=", value: 90},
+                      {occupancy: $area, who: staff, op: "==", value: 0}]}}
+      - {from: [browsing, needs_help], to: helped, when: {contact: $area, min_s: 5}}
+      - {from: "*", to: empty, when: {occupancy: $area, who: customer, op: "==", value: 0}, for_s: 5}
+
+objects:
+  - {id: "Стойка «Женское»", machine: help_zone, camera: floor, owner: "Мадина", zones: {area: rack_women}}
+  - {id: "Примерочные", machine: help_zone, camera: floor, owner: "Ерлан", zones: {area: fitting_wait}}
+
+rules:
+  - id: fitting_queue
+    when: {occupancy: fitting_wait, who: customer, op: ">=", value: 3}
+    for_s: 120
+    cooldown_s: 600
+    severity: warning
+    message: "У примерочных {fitting_wait.customer} чел. уже {duration} — нужен консультант"
+    notify: [console, telegram]
+
+output: {dir: out}

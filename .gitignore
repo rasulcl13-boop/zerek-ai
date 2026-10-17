@@ -1,0 +1,30 @@
+# окружение и кэши
+.venv/
+__pycache__/
+.pytest_cache/
+.DS_Store
+.env
+*.env
+
+# данные, результаты прогонов, модели и медиа — не распространяем (лицензии наборов, размер)
+data/
+out/
+*.pth
+*.pt
+*.mp4
+*.mpg
+*.npz
+
+# Frigate: в репозитории только config.yml; БД, ключи (.jwt_secret), записи — локальные
+frigate/*
+!frigate/config/
+frigate/config/*
+!frigate/config/config.yml
+
+# STG-NF: код авторов (CC BY-NC 4.0) не кладём — см. research/stgnf/SETUP.md
+research/stgnf/*
+!research/stgnf/SETUP.md
+!research/stgnf/run_stgnf.py
+!research/stgnf/prepare_poselift.py
+!research/stgnf/patch_compat.sh
+!research/stgnf/results/

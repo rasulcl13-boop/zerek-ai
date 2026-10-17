@@ -1,0 +1,12 @@
+numpy==2.5.4
+opencv-python-headless==5.0.0.93
+pillow==13.0.0
+pydantic==2.14.1
+pytest==9.1.1
+PyYAML==6.0.3
+rfdetr==1.11.2
+supervision==0.31.0
+torch==2.14.1
+trackers==2.6.1
+fastapi==0.143.3
+uvicorn==0.54.0

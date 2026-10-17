@@ -1,0 +1,94 @@
+# Продуктовый: зона касс. Видео — Pexels 4249560 (сток, не CCTV; для CCTV — флаг --cctv).
+# Пороги ДЕМО (ролик 9 с). Продовые значения — в комментариях «прод:».
+site:
+  id: grocery-checkout-demo
+  name: "Продуктовый · кассы"
+  vertical: grocery
+
+cameras:
+  - id: checkout
+    source: data/videos/pexels-4249560.mp4
+    process_fps: 10
+    anchor: center               # камера на уровне глаз: ноги закрыты кассой и тележками
+    zones:
+      - id: cashier_1
+        kind: staff_area
+        label: "Касса 1 · кассир"
+        polygon: [[0.40, 0.35], [0.54, 0.35], [0.54, 0.75], [0.40, 0.75]]
+      - id: queue_1
+        kind: queue
+        label: "Касса 1 · очередь"
+        polygon: [[0.06, 0.30], [0.37, 0.30], [0.37, 0.80], [0.06, 0.80]]
+      - id: queue_2
+        kind: queue
+        label: "Касса 2 · клиент"
+        polygon: [[0.56, 0.22], [0.71, 0.22], [0.71, 0.62], [0.56, 0.62]]
+      - id: cashier_2
+        kind: staff_area
+        label: "Касса 2 · кассир"
+        polygon: [[0.72, 0.22], [0.93, 0.22], [0.93, 0.62], [0.72, 0.62]]
+
+detector: {model: rfdetr-medium, confidence: 0.4}
+tracker: {type: botsort, lost_track_buffer_s: 2}   # BoT-SORT: компенсирует дрожание камеры
+
+staff:
+  uniform:                       # зелёная форма кассиров этой сети
+    hsv_ranges:
+      - {lower: [35, 90, 50], upper: [85, 255, 255]}
+    min_ratio: 0.20
+    min_samples: 3
+  zone: {zones: [cashier_1, cashier_2], min_s: 4}   # прод: 30
+
+# Касса как объект с состояниями — даёт метрики по кассиру смены (owner).
+machines:
+  checkout_lane:
+    initial: idle
+    states:
+      idle:       {label: "нет клиентов"}
+      serving:    {label: "обслуживание"}
+      unattended:
+        label: "клиент ждёт, кассира нет"
+        counts_as_service_wait: true
+        alerts:
+          - {after_s: 3, severity: warning,  message: "{object}: клиент ждёт {wait}, кассира нет", notify: [console, telegram]}   # прод: 60
+          - {after_s: 8, severity: critical, message: "{object}: без кассира уже {wait} — менеджеру", notify: [console, telegram]} # прод: 180
+    transitions:
+      - from: [idle, unattended]
+        to: serving
+        when: {all: [{occupancy: $wait, who: customer, op: ">=", value: 1},
+                     {occupancy: $service, who: staff, op: ">=", value: 1}]}
+        for_s: 1
+      - from: [idle, serving]
+        to: unattended
+        when: {all: [{occupancy: $wait, who: customer, op: ">=", value: 1},
+                     {occupancy: $service, who: staff, op: "==", value: 0}]}
+        for_s: 2                                            # прод: 10 (кассир отошёл на секунду — не сигнал)
+      - from: [serving, unattended]
+        to: idle
+        when: {occupancy: $wait, who: customer, op: "==", value: 0}
+        for_s: 2
+
+objects:
+  - {id: "Касса 1", machine: checkout_lane, camera: checkout, owner: "кассир смены А",
+     zones: {wait: queue_1, service: cashier_1}}
+  - {id: "Касса 2", machine: checkout_lane, camera: checkout, owner: "кассир смены Б",
+     zones: {wait: queue_2, service: cashier_2}}
+
+rules:
+  - id: long_queue
+    when: {occupancy: queue_1, who: customer, op: ">=", value: 2}   # прод: 4
+    for_s: 3                                                         # прод: 60
+    cooldown_s: 300
+    severity: warning
+    message: "Касса 1: в очереди {queue_1.customer} чел. уже {duration} — откройте вторую кассу"
+    notify: [console, telegram]
+  - id: long_wait
+    when: {dwell_max: queue_1, who: customer, op: ">=", value: 6}  # прод: 300
+    cooldown_s: 600
+    severity: info
+    message: "Касса 1: клиент стоит в очереди {queue_1.dwell}"
+    notify: [console]
+
+output:
+  dir: out
+  telegram: {enabled: false}

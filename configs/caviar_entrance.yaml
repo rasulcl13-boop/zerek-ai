@@ -1,0 +1,40 @@
+# Вход в магазин одежды, НАСТОЯЩАЯ CCTV (CAVIAR, 384×288, торговый центр, Лиссабон).
+# Есть ручная разметка «shop enter / shop exit» → tools/eval_caviar.py меряет точность счётчика.
+site:
+  id: caviar-entrance
+  name: "Одежда · вход (CAVIAR)"
+  vertical: fashion
+
+cameras:
+  - id: front
+    source: data/caviar/TwoEnterShop1front.mpg
+    process_fps: 12.5
+    resize_width: 384
+    zones:
+      - id: shop_floor
+        kind: generic
+        label: "Торговый зал"
+        polygon: [[0.56, 0.20], [0.86, 0.20], [0.86, 0.47], [0.56, 0.47]]
+      - id: storefront
+        kind: storefront
+        label: "Перед витриной"
+        polygon: [[0.10, 0.44], [0.56, 0.44], [0.56, 0.60], [0.10, 0.60]]
+    lines:
+      - id: door
+        label: "Дверь"
+        start: [0.47, 0.47]
+        end: [0.88, 0.47]
+        hysteresis: 0.015
+
+detector: {model: rfdetr-medium, confidence: 0.35}
+tracker: {type: botsort, lost_track_buffer_s: 2}
+
+rules:
+  - id: window_shopper
+    when: {dwell_max: storefront, who: customer, op: ">=", value: 5}
+    cooldown_s: 30
+    severity: info
+    message: "Прохожий смотрит на витрину {storefront.dwell} — кандидат в покупатели"
+    notify: [console]
+
+output: {dir: out}

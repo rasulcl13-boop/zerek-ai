@@ -1,0 +1,1188 @@
+{
+ "$defs": {
+  "AllCond": {
+   "additionalProperties": false,
+   "properties": {
+    "all": {
+     "items": {
+      "anyOf": [
+       {
+        "$ref": "#/$defs/OccupancyCond"
+       },
+       {
+        "$ref": "#/$defs/DwellCond"
+       },
+       {
+        "$ref": "#/$defs/ContactCond"
+       },
+       {
+        "$ref": "#/$defs/TimeInStateCond"
+       },
+       {
+        "$ref": "#/$defs/AllCond"
+       },
+       {
+        "$ref": "#/$defs/AnyCond"
+       },
+       {
+        "$ref": "#/$defs/NotCond"
+       }
+      ]
+     },
+     "title": "All",
+     "type": "array"
+    }
+   },
+   "required": [
+    "all"
+   ],
+   "title": "AllCond",
+   "type": "object"
+  },
+  "AnyCond": {
+   "additionalProperties": false,
+   "properties": {
+    "any": {
+     "items": {
+      "anyOf": [
+       {
+        "$ref": "#/$defs/OccupancyCond"
+       },
+       {
+        "$ref": "#/$defs/DwellCond"
+       },
+       {
+        "$ref": "#/$defs/ContactCond"
+       },
+       {
+        "$ref": "#/$defs/TimeInStateCond"
+       },
+       {
+        "$ref": "#/$defs/AllCond"
+       },
+       {
+        "$ref": "#/$defs/AnyCond"
+       },
+       {
+        "$ref": "#/$defs/NotCond"
+       }
+      ]
+     },
+     "title": "Any",
+     "type": "array"
+    }
+   },
+   "required": [
+    "any"
+   ],
+   "title": "AnyCond",
+   "type": "object"
+  },
+  "Camera": {
+   "additionalProperties": false,
+   "properties": {
+    "id": {
+     "title": "Id",
+     "type": "string"
+    },
+    "source": {
+     "title": "Source",
+     "type": "string"
+    },
+    "process_fps": {
+     "default": 10,
+     "title": "Process Fps",
+     "type": "number"
+    },
+    "resize_width": {
+     "default": 1280,
+     "title": "Resize Width",
+     "type": "integer"
+    },
+    "anchor": {
+     "default": "bottom",
+     "enum": [
+      "bottom",
+      "center"
+     ],
+     "title": "Anchor",
+     "type": "string"
+    },
+    "zones": {
+     "default": [],
+     "items": {
+      "$ref": "#/$defs/Zone"
+     },
+     "title": "Zones",
+     "type": "array"
+    },
+    "lines": {
+     "default": [],
+     "items": {
+      "$ref": "#/$defs/Line"
+     },
+     "title": "Lines",
+     "type": "array"
+    },
+    "frigate_camera": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Frigate Camera"
+    },
+    "slicing": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/SlicingCfg"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null
+    }
+   },
+   "required": [
+    "id",
+    "source"
+   ],
+   "title": "Camera",
+   "type": "object"
+  },
+  "ContactCond": {
+   "additionalProperties": false,
+   "description": "Сотрудник находился в зоне контакта ≥ min_s (с момента входа в текущее состояние).",
+   "properties": {
+    "contact": {
+     "title": "Contact",
+     "type": "string"
+    },
+    "min_s": {
+     "default": 3.0,
+     "title": "Min S",
+     "type": "number"
+    }
+   },
+   "required": [
+    "contact"
+   ],
+   "title": "ContactCond",
+   "type": "object"
+  },
+  "DetectorCfg": {
+   "additionalProperties": false,
+   "properties": {
+    "model": {
+     "default": "rfdetr-medium",
+     "enum": [
+      "rfdetr-nano",
+      "rfdetr-small",
+      "rfdetr-medium",
+      "rfdetr-base",
+      "rfdetr-large"
+     ],
+     "title": "Model",
+     "type": "string"
+    },
+    "confidence": {
+     "default": 0.4,
+     "title": "Confidence",
+     "type": "number"
+    },
+    "device": {
+     "default": "auto",
+     "enum": [
+      "auto",
+      "cpu",
+      "mps",
+      "cuda"
+     ],
+     "title": "Device",
+     "type": "string"
+    },
+    "cache": {
+     "default": true,
+     "title": "Cache",
+     "type": "boolean"
+    }
+   },
+   "title": "DetectorCfg",
+   "type": "object"
+  },
+  "DwellCond": {
+   "additionalProperties": false,
+   "description": "Максимальное время пребывания среди людей, находящихся в зоне сейчас.",
+   "properties": {
+    "dwell_max": {
+     "title": "Dwell Max",
+     "type": "string"
+    },
+    "who": {
+     "default": "customer",
+     "enum": [
+      "customer",
+      "staff",
+      "any"
+     ],
+     "title": "Who",
+     "type": "string"
+    },
+    "op": {
+     "default": ">=",
+     "enum": [
+      ">",
+      ">=",
+      "<",
+      "<=",
+      "==",
+      "!="
+     ],
+     "title": "Op",
+     "type": "string"
+    },
+    "value": {
+     "title": "Value",
+     "type": "number"
+    }
+   },
+   "required": [
+    "dwell_max",
+    "value"
+   ],
+   "title": "DwellCond",
+   "type": "object"
+  },
+  "FrigateCfg": {
+   "additionalProperties": false,
+   "properties": {
+    "url": {
+     "default": "http://127.0.0.1:5000",
+     "title": "Url",
+     "type": "string"
+    },
+    "clip_before_s": {
+     "default": 10,
+     "title": "Clip Before S",
+     "type": "number"
+    },
+    "clip_after_s": {
+     "default": 10,
+     "title": "Clip After S",
+     "type": "number"
+    }
+   },
+   "title": "FrigateCfg",
+   "type": "object"
+  },
+  "HSVRange": {
+   "additionalProperties": false,
+   "properties": {
+    "lower": {
+     "maxItems": 3,
+     "minItems": 3,
+     "prefixItems": [
+      {
+       "type": "integer"
+      },
+      {
+       "type": "integer"
+      },
+      {
+       "type": "integer"
+      }
+     ],
+     "title": "Lower",
+     "type": "array"
+    },
+    "upper": {
+     "maxItems": 3,
+     "minItems": 3,
+     "prefixItems": [
+      {
+       "type": "integer"
+      },
+      {
+       "type": "integer"
+      },
+      {
+       "type": "integer"
+      }
+     ],
+     "title": "Upper",
+     "type": "array"
+    }
+   },
+   "required": [
+    "lower",
+    "upper"
+   ],
+   "title": "HSVRange",
+   "type": "object"
+  },
+  "Line": {
+   "additionalProperties": false,
+   "properties": {
+    "id": {
+     "title": "Id",
+     "type": "string"
+    },
+    "start": {
+     "maxItems": 2,
+     "minItems": 2,
+     "prefixItems": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "number"
+      }
+     ],
+     "title": "Start",
+     "type": "array"
+    },
+    "end": {
+     "maxItems": 2,
+     "minItems": 2,
+     "prefixItems": [
+      {
+       "type": "number"
+      },
+      {
+       "type": "number"
+      }
+     ],
+     "title": "End",
+     "type": "array"
+    },
+    "swap_direction": {
+     "default": false,
+     "title": "Swap Direction",
+     "type": "boolean"
+    },
+    "hysteresis": {
+     "default": 0.02,
+     "title": "Hysteresis",
+     "type": "number"
+    },
+    "label": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Label"
+    }
+   },
+   "required": [
+    "id",
+    "start",
+    "end"
+   ],
+   "title": "Line",
+   "type": "object"
+  },
+  "NotCond": {
+   "additionalProperties": false,
+   "properties": {
+    "not": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/OccupancyCond"
+      },
+      {
+       "$ref": "#/$defs/DwellCond"
+      },
+      {
+       "$ref": "#/$defs/ContactCond"
+      },
+      {
+       "$ref": "#/$defs/TimeInStateCond"
+      },
+      {
+       "$ref": "#/$defs/AllCond"
+      },
+      {
+       "$ref": "#/$defs/AnyCond"
+      },
+      {
+       "$ref": "#/$defs/NotCond"
+      }
+     ],
+     "title": "Not"
+    }
+   },
+   "required": [
+    "not"
+   ],
+   "title": "NotCond",
+   "type": "object"
+  },
+  "OccupancyCond": {
+   "additionalProperties": false,
+   "description": "Сколько людей (по роли) в зоне сейчас.",
+   "properties": {
+    "occupancy": {
+     "title": "Occupancy",
+     "type": "string"
+    },
+    "who": {
+     "default": "customer",
+     "enum": [
+      "customer",
+      "staff",
+      "any"
+     ],
+     "title": "Who",
+     "type": "string"
+    },
+    "op": {
+     "default": ">=",
+     "enum": [
+      ">",
+      ">=",
+      "<",
+      "<=",
+      "==",
+      "!="
+     ],
+     "title": "Op",
+     "type": "string"
+    },
+    "value": {
+     "default": 1,
+     "title": "Value",
+     "type": "number"
+    }
+   },
+   "required": [
+    "occupancy"
+   ],
+   "title": "OccupancyCond",
+   "type": "object"
+  },
+  "OutputCfg": {
+   "additionalProperties": false,
+   "properties": {
+    "dir": {
+     "default": "out",
+     "title": "Dir",
+     "type": "string"
+    },
+    "annotated_video": {
+     "default": true,
+     "title": "Annotated Video",
+     "type": "boolean"
+    },
+    "telegram": {
+     "$ref": "#/$defs/TelegramCfg",
+     "default": {
+      "enabled": false,
+      "token_env": "TG_BOT_TOKEN",
+      "chat_id_env": "TG_CHAT_ID",
+      "send_snapshot": true
+     }
+    }
+   },
+   "title": "OutputCfg",
+   "type": "object"
+  },
+  "Rule": {
+   "additionalProperties": false,
+   "properties": {
+    "id": {
+     "title": "Id",
+     "type": "string"
+    },
+    "when": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/OccupancyCond"
+      },
+      {
+       "$ref": "#/$defs/DwellCond"
+      },
+      {
+       "$ref": "#/$defs/ContactCond"
+      },
+      {
+       "$ref": "#/$defs/TimeInStateCond"
+      },
+      {
+       "$ref": "#/$defs/AllCond"
+      },
+      {
+       "$ref": "#/$defs/AnyCond"
+      },
+      {
+       "$ref": "#/$defs/NotCond"
+      }
+     ],
+     "title": "When"
+    },
+    "for_s": {
+     "default": 0,
+     "title": "For S",
+     "type": "number"
+    },
+    "cooldown_s": {
+     "default": 300,
+     "title": "Cooldown S",
+     "type": "number"
+    },
+    "severity": {
+     "default": "warning",
+     "enum": [
+      "info",
+      "warning",
+      "critical"
+     ],
+     "title": "Severity",
+     "type": "string"
+    },
+    "message": {
+     "title": "Message",
+     "type": "string"
+    },
+    "notify": {
+     "default": [
+      "console"
+     ],
+     "items": {
+      "enum": [
+       "console",
+       "telegram"
+      ],
+      "type": "string"
+     },
+     "title": "Notify",
+     "type": "array"
+    }
+   },
+   "required": [
+    "id",
+    "when",
+    "message"
+   ],
+   "title": "Rule",
+   "type": "object"
+  },
+  "Site": {
+   "additionalProperties": false,
+   "properties": {
+    "id": {
+     "title": "Id",
+     "type": "string"
+    },
+    "name": {
+     "title": "Name",
+     "type": "string"
+    },
+    "vertical": {
+     "enum": [
+      "grocery",
+      "pharmacy",
+      "convenience",
+      "fashion",
+      "cafe",
+      "restaurant",
+      "qsr",
+      "fuel",
+      "beauty",
+      "gym",
+      "bank",
+      "warehouse",
+      "carwash",
+      "other"
+     ],
+     "title": "Vertical",
+     "type": "string"
+    },
+    "timezone": {
+     "default": "Asia/Almaty",
+     "title": "Timezone",
+     "type": "string"
+    }
+   },
+   "required": [
+    "id",
+    "name",
+    "vertical"
+   ],
+   "title": "Site",
+   "type": "object"
+  },
+  "SlicingCfg": {
+   "additionalProperties": false,
+   "description": "SAHI-нарезка кадра (supervision.InferenceSlicer): мелкие люди вдали становятся крупнее для\nдетектора. На Mall: ошибка подсчёта 4,6 → 3,1 чел. Цена — ~grid[0]×grid[1] инференсов на кадр.",
+   "properties": {
+    "grid": {
+     "default": [
+      2,
+      2
+     ],
+     "maxItems": 2,
+     "minItems": 2,
+     "prefixItems": [
+      {
+       "type": "integer"
+      },
+      {
+       "type": "integer"
+      }
+     ],
+     "title": "Grid",
+     "type": "array"
+    },
+    "overlap": {
+     "default": 0.2,
+     "title": "Overlap",
+     "type": "number"
+    },
+    "iou": {
+     "default": 0.5,
+     "title": "Iou",
+     "type": "number"
+    },
+    "metric": {
+     "default": "iou",
+     "enum": [
+      "ios",
+      "iou"
+     ],
+     "title": "Metric",
+     "type": "string"
+    }
+   },
+   "title": "SlicingCfg",
+   "type": "object"
+  },
+  "StaffCfg": {
+   "additionalProperties": false,
+   "properties": {
+    "uniform": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/UniformCfg"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null
+    },
+    "zone": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/StaffZoneCfg"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null
+    }
+   },
+   "title": "StaffCfg",
+   "type": "object"
+  },
+  "StaffZoneCfg": {
+   "additionalProperties": false,
+   "description": "Кто провёл в staff-зоне ≥ min_s — сотрудник (за кассой клиенты не стоят).",
+   "properties": {
+    "zones": {
+     "items": {
+      "type": "string"
+     },
+     "title": "Zones",
+     "type": "array"
+    },
+    "min_s": {
+     "default": 5.0,
+     "title": "Min S",
+     "type": "number"
+    }
+   },
+   "required": [
+    "zones"
+   ],
+   "title": "StaffZoneCfg",
+   "type": "object"
+  },
+  "StateAlert": {
+   "additionalProperties": false,
+   "properties": {
+    "after_s": {
+     "title": "After S",
+     "type": "number"
+    },
+    "severity": {
+     "default": "warning",
+     "enum": [
+      "info",
+      "warning",
+      "critical"
+     ],
+     "title": "Severity",
+     "type": "string"
+    },
+    "message": {
+     "title": "Message",
+     "type": "string"
+    },
+    "notify": {
+     "default": [
+      "console"
+     ],
+     "items": {
+      "enum": [
+       "console",
+       "telegram"
+      ],
+      "type": "string"
+     },
+     "title": "Notify",
+     "type": "array"
+    }
+   },
+   "required": [
+    "after_s",
+    "message"
+   ],
+   "title": "StateAlert",
+   "type": "object"
+  },
+  "StateDef": {
+   "additionalProperties": false,
+   "properties": {
+    "label": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Label"
+    },
+    "alerts": {
+     "default": [],
+     "items": {
+      "$ref": "#/$defs/StateAlert"
+     },
+     "title": "Alerts",
+     "type": "array"
+    },
+    "counts_as_service_wait": {
+     "default": false,
+     "title": "Counts As Service Wait",
+     "type": "boolean"
+    }
+   },
+   "title": "StateDef",
+   "type": "object"
+  },
+  "StateMachine": {
+   "additionalProperties": false,
+   "properties": {
+    "initial": {
+     "title": "Initial",
+     "type": "string"
+    },
+    "states": {
+     "additionalProperties": {
+      "$ref": "#/$defs/StateDef"
+     },
+     "title": "States",
+     "type": "object"
+    },
+    "transitions": {
+     "items": {
+      "$ref": "#/$defs/Transition"
+     },
+     "title": "Transitions",
+     "type": "array"
+    }
+   },
+   "required": [
+    "initial",
+    "states",
+    "transitions"
+   ],
+   "title": "StateMachine",
+   "type": "object"
+  },
+  "TelegramCfg": {
+   "additionalProperties": false,
+   "properties": {
+    "enabled": {
+     "default": false,
+     "title": "Enabled",
+     "type": "boolean"
+    },
+    "token_env": {
+     "default": "TG_BOT_TOKEN",
+     "title": "Token Env",
+     "type": "string"
+    },
+    "chat_id_env": {
+     "default": "TG_CHAT_ID",
+     "title": "Chat Id Env",
+     "type": "string"
+    },
+    "send_snapshot": {
+     "default": true,
+     "title": "Send Snapshot",
+     "type": "boolean"
+    }
+   },
+   "title": "TelegramCfg",
+   "type": "object"
+  },
+  "TimeInStateCond": {
+   "additionalProperties": false,
+   "properties": {
+    "time_in_state": {
+     "enum": [
+      ">",
+      ">=",
+      "<",
+      "<=",
+      "==",
+      "!="
+     ],
+     "title": "Time In State",
+     "type": "string"
+    },
+    "value": {
+     "title": "Value",
+     "type": "number"
+    }
+   },
+   "required": [
+    "time_in_state",
+    "value"
+   ],
+   "title": "TimeInStateCond",
+   "type": "object"
+  },
+  "TrackedObject": {
+   "additionalProperties": false,
+   "description": "Экземпляр шаблона: стол 5, касса 1, примерочная…\n\n`zones` подставляет реальные зоны в плейсхолдеры шаблона: в шаблоне пишем\n`$seat`, в объекте — `zones: {seat: table_5}`.",
+   "properties": {
+    "id": {
+     "title": "Id",
+     "type": "string"
+    },
+    "machine": {
+     "title": "Machine",
+     "type": "string"
+    },
+    "camera": {
+     "title": "Camera",
+     "type": "string"
+    },
+    "zones": {
+     "additionalProperties": {
+      "type": "string"
+     },
+     "title": "Zones",
+     "type": "object"
+    },
+    "owner": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Owner"
+    }
+   },
+   "required": [
+    "id",
+    "machine",
+    "camera",
+    "zones"
+   ],
+   "title": "TrackedObject",
+   "type": "object"
+  },
+  "TrackerCfg": {
+   "additionalProperties": false,
+   "properties": {
+    "type": {
+     "default": "botsort",
+     "enum": [
+      "bytetrack",
+      "botsort",
+      "ocsort"
+     ],
+     "title": "Type",
+     "type": "string"
+    },
+    "lost_track_buffer_s": {
+     "default": 2.0,
+     "title": "Lost Track Buffer S",
+     "type": "number"
+    }
+   },
+   "title": "TrackerCfg",
+   "type": "object"
+  },
+  "Transition": {
+   "additionalProperties": false,
+   "properties": {
+    "from": {
+     "anyOf": [
+      {
+       "items": {
+        "type": "string"
+       },
+       "type": "array"
+      },
+      {
+       "type": "string"
+      }
+     ],
+     "title": "From"
+    },
+    "to": {
+     "title": "To",
+     "type": "string"
+    },
+    "when": {
+     "anyOf": [
+      {
+       "$ref": "#/$defs/OccupancyCond"
+      },
+      {
+       "$ref": "#/$defs/DwellCond"
+      },
+      {
+       "$ref": "#/$defs/ContactCond"
+      },
+      {
+       "$ref": "#/$defs/TimeInStateCond"
+      },
+      {
+       "$ref": "#/$defs/AllCond"
+      },
+      {
+       "$ref": "#/$defs/AnyCond"
+      },
+      {
+       "$ref": "#/$defs/NotCond"
+      }
+     ],
+     "title": "When"
+    },
+    "for_s": {
+     "default": 0,
+     "title": "For S",
+     "type": "number"
+    }
+   },
+   "required": [
+    "from",
+    "to",
+    "when"
+   ],
+   "title": "Transition",
+   "type": "object"
+  },
+  "UniformCfg": {
+   "additionalProperties": false,
+   "description": "Форма сотрудников: доля пикселей торса в заданных HSV-диапазонах.",
+   "properties": {
+    "hsv_ranges": {
+     "items": {
+      "$ref": "#/$defs/HSVRange"
+     },
+     "title": "Hsv Ranges",
+     "type": "array"
+    },
+    "min_ratio": {
+     "default": 0.25,
+     "title": "Min Ratio",
+     "type": "number"
+    },
+    "min_samples": {
+     "default": 3,
+     "title": "Min Samples",
+     "type": "integer"
+    }
+   },
+   "required": [
+    "hsv_ranges"
+   ],
+   "title": "UniformCfg",
+   "type": "object"
+  },
+  "Zone": {
+   "additionalProperties": false,
+   "properties": {
+    "id": {
+     "title": "Id",
+     "type": "string"
+    },
+    "kind": {
+     "default": "generic",
+     "enum": [
+      "staff_area",
+      "queue",
+      "service",
+      "table",
+      "fitting_room",
+      "shelf",
+      "entrance",
+      "storefront",
+      "generic"
+     ],
+     "title": "Kind",
+     "type": "string"
+    },
+    "polygon": {
+     "items": {
+      "maxItems": 2,
+      "minItems": 2,
+      "prefixItems": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "number"
+       }
+      ],
+      "type": "array"
+     },
+     "minItems": 3,
+     "title": "Polygon",
+     "type": "array"
+    },
+    "label": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Label"
+    }
+   },
+   "required": [
+    "id",
+    "polygon"
+   ],
+   "title": "Zone",
+   "type": "object"
+  }
+ },
+ "additionalProperties": false,
+ "properties": {
+  "site": {
+   "$ref": "#/$defs/Site"
+  },
+  "cameras": {
+   "items": {
+    "$ref": "#/$defs/Camera"
+   },
+   "title": "Cameras",
+   "type": "array"
+  },
+  "detector": {
+   "$ref": "#/$defs/DetectorCfg",
+   "default": {
+    "model": "rfdetr-medium",
+    "confidence": 0.4,
+    "device": "auto",
+    "cache": true
+   }
+  },
+  "tracker": {
+   "$ref": "#/$defs/TrackerCfg",
+   "default": {
+    "type": "botsort",
+    "lost_track_buffer_s": 2.0
+   }
+  },
+  "staff": {
+   "$ref": "#/$defs/StaffCfg",
+   "default": {
+    "uniform": null,
+    "zone": null
+   }
+  },
+  "rules": {
+   "default": [],
+   "items": {
+    "$ref": "#/$defs/Rule"
+   },
+   "title": "Rules",
+   "type": "array"
+  },
+  "machines": {
+   "additionalProperties": {
+    "$ref": "#/$defs/StateMachine"
+   },
+   "default": {},
+   "title": "Machines",
+   "type": "object"
+  },
+  "objects": {
+   "default": [],
+   "items": {
+    "$ref": "#/$defs/TrackedObject"
+   },
+   "title": "Objects",
+   "type": "array"
+  },
+  "output": {
+   "$ref": "#/$defs/OutputCfg",
+   "default": {
+    "dir": "out",
+    "annotated_video": true,
+    "telegram": {
+     "chat_id_env": "TG_CHAT_ID",
+     "enabled": false,
+     "send_snapshot": true,
+     "token_env": "TG_BOT_TOKEN"
+    }
+   }
+  },
+  "frigate": {
+   "anyOf": [
+    {
+     "$ref": "#/$defs/FrigateCfg"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null
+  }
+ },
+ "required": [
+  "site",
+  "cameras"
+ ],
+ "title": "SiteConfig",
+ "type": "object"
+}

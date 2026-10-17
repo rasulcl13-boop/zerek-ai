@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Store Vision</title>
+<style>
+:root {
+  color-scheme: light;
+  --bg: #f4f4f1; --surface-1: #fcfcfb; --surface-2: #f0efec; --border: #e2e1dc;
+  --text-primary: #0b0b0b; --text-secondary: #52514e; --text-muted: #7b7a75;
+  --grid: #e8e7e2; --axis: #b9b8b2;
+  --series-1: #2a78d6; --series-1-soft: #cde2fb;
+  --good: #0ca30c; --warning: #fab219; --serious: #ec835a; --critical: #d03b3b;
+  --good-text: #006300; --warning-text: #7a5200; --critical-text: #b02a2a;
+  --radius: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #111110; --surface-1: #1a1a19; --surface-2: #232321; --border: #33332f;
+    --text-primary: #ffffff; --text-secondary: #c3c2b7; --text-muted: #8f8e86;
+    --grid: #2b2b28; --axis: #55554f;
+    --series-1: #3987e5; --series-1-soft: #184f95;
+    --good-text: #4cc94c; --warning-text: #fab219; --critical-text: #ef7a7a;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #111110; --surface-1: #1a1a19; --surface-2: #232321; --border: #33332f;
+  --text-primary: #ffffff; --text-secondary: #c3c2b7; --text-muted: #8f8e86;
+  --grid: #2b2b28; --axis: #55554f;
+  --series-1: #3987e5; --series-1-soft: #184f95;
+  --good-text: #4cc94c; --warning-text: #fab219; --critical-text: #ef7a7a;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text-primary);
+  font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+header { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between;
+  padding: 14px 20px; border-bottom: 1px solid var(--border); background: var(--surface-1); position: sticky; top: 0; z-index: 5; }
+h1 { font-size: 17px; margin: 0; font-weight: 650; }
+h2 { font-size: 13px; margin: 0 0 10px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .04em; }
+.sub { color: var(--text-muted); font-size: 12px; }
+main { max-width: 1400px; margin: 0 auto; padding: 16px 20px 40px; display: grid; gap: 16px; }
+.row { display: grid; gap: 16px; }
+.r4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.r2 { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); }
+.r3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 1000px) { .r4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } .r2, .r3 { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 520px) { main, header { padding-left: 16px; padding-right: 16px; } .r4 { grid-template-columns: minmax(0, 1fr); } }
+.card { background: var(--surface-1); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; min-width: 0; }
+.tile .v { font-size: 30px; font-weight: 650; font-variant-numeric: tabular-nums; line-height: 1.15; margin-top: 2px; }
+.tile .l { color: var(--text-secondary); font-size: 13px; }
+.tile .d { color: var(--text-muted); font-size: 12px; margin-top: 4px; }
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.seg button { border: 0; background: transparent; color: var(--text-secondary); padding: 6px 12px; font: inherit; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--surface-2); color: var(--text-primary); font-weight: 600; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border: 1px solid var(--border);
+  border-radius: 999px; font-size: 12px; color: var(--text-secondary); background: var(--surface-1); }
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex: none; }
+.st { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; font-size: 13px; }
+.st svg { flex: none; }
+.objs { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+.obj { border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; background: var(--surface-2); }
+.obj .n { font-weight: 650; }
+.obj .o { color: var(--text-muted); font-size: 12px; }
+.obj .t { font-variant-numeric: tabular-nums; color: var(--text-secondary); font-size: 13px; margin-top: 2px; }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); font-size: 13px; }
+th { color: var(--text-muted); font-weight: 600; font-size: 12px; }
+td.num, th.num { text-align: right; }
+.chart { position: relative; width: 100%; }
+.chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.tip { position: absolute; pointer-events: none; background: var(--surface-1); border: 1px solid var(--border);
+  border-radius: 8px; padding: 6px 9px; font-size: 12px; box-shadow: 0 4px 14px rgba(0,0,0,.12); white-space: nowrap; opacity: 0; transition: opacity .08s; z-index: 3; }
+.tip b { font-variant-numeric: tabular-nums; }
+.head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+.link { background: none; border: 0; color: var(--series-1); cursor: pointer; font: inherit; font-size: 12px; padding: 0; }
+.cams { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+.cam { background: #000; border-radius: 8px; overflow: hidden; position: relative; aspect-ratio: 16/9; }
+.cam img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.cam .cap { position: absolute; left: 8px; top: 8px; }
+.alerts { display: grid; gap: 8px; max-height: 520px; overflow: auto; }
+.al { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 10px; align-items: start; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+.al img { width: 112px; aspect-ratio: 16/9; object-fit: cover; border-radius: 6px; background: var(--surface-2); }
+.al .m { font-size: 13px; }
+.al .meta { color: var(--text-muted); font-size: 12px; display: flex; gap: 10px; flex-wrap: wrap; margin-top: 2px; }
+.al a { color: var(--series-1); }
+.empty { color: var(--text-muted); font-size: 13px; padding: 10px 0; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1 id="site">Store Vision</h1>
+    <div class="sub" id="clock">подключение…</div>
+  </div>
+  <div class="chips" id="camchips"></div>
+  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+    <div class="seg" role="group" aria-label="Период">
+      <button data-r="1h">1 час</button><button data-r="today" aria-pressed="true">Сегодня</button><button data-r="7d">7 дней</button>
+    </div>
+    <a class="chip" id="frigate" target="_blank" rel="noopener" hidden>Архив Frigate ↗</a>
+  </div>
+</header>
+
+<main>
+  <section class="row r4" aria-label="Ключевые показатели">
+    <div class="card tile"><div class="l">Вошло покупателей</div><div class="v" id="k-in">—</div><div class="d" id="k-in-d"></div></div>
+    <div class="card tile"><div class="l">Сейчас в кадре</div><div class="v" id="k-now">—</div><div class="d" id="k-now-d"></div></div>
+    <div class="card tile"><div class="l">Ожидание без обслуживания, медиана</div><div class="v" id="k-wait">—</div><div class="d" id="k-wait-d"></div></div>
+    <div class="card tile"><div class="l">Оповещения</div><div class="v" id="k-al">—</div><div class="d" id="k-al-d"></div></div>
+  </section>
+
+  <section class="card" aria-label="Кассы и зоны сейчас">
+    <div class="head"><h2>Сейчас</h2><span class="sub">обновляется каждые 2 с</span></div>
+    <div class="objs" id="objects"></div>
+    <div style="margin-top:12px; overflow:auto"><table id="zones"></table></div>
+  </section>
+
+  <section class="row r2">
+    <div class="card">
+      <div class="head"><h2>Входы покупателей</h2><button class="link" data-table="traffic">Таблица</button></div>
+      <div class="chart" id="traffic"></div>
+      <div id="traffic-table" hidden></div>
+    </div>
+    <div class="card">
+      <div class="head"><h2>Ожидание без обслуживания по сотрудникам</h2><button class="link" data-table="service">Таблица</button></div>
+      <div class="chart" id="service"></div>
+      <div id="service-table" hidden></div>
+      <div class="sub" style="margin-top:8px">Медиана, засечка — 90-й перцентиль. «Обслужено» — нагрузка: сравнивайте ожидание при равной нагрузке.</div>
+    </div>
+  </section>
+
+  <section class="row r2">
+    <div class="card">
+      <div class="head"><h2>Камеры</h2><span class="sub">оверлей анализа · RTSP из Frigate</span></div>
+      <div class="cams" id="cams"></div>
+    </div>
+    <div class="card">
+      <div class="head"><h2>Лента оповещений</h2><span class="sub" id="al-count"></span></div>
+      <div class="alerts" id="alerts"></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="head"><h2>Время в зонах (покупатели)</h2></div>
+    <div style="overflow:auto"><table id="dwell"></table></div>
+  </section>
+</main>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmtS = s => s == null ? "—" : s >= 60 ? `${Math.floor(s/60)} мин ${String(Math.round(s%60)).padStart(2,"0")} с` : `${Math.round(s)} с`;
+const fmtT = t => new Date(t*1000).toLocaleTimeString("ru-RU", {hour:"2-digit", minute:"2-digit", second:"2-digit"});
+let range = "today", state = null, stats = null;
+
+// статус = иконка + подпись, никогда только цвет
+const ICON = {
+  ok: '<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="6" fill="var(--good)"/><path d="M4 7.2l2 2 4-4.4" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>',
+  pending: '<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="6" fill="none" stroke="var(--warning)" stroke-width="2"/><path d="M7 4v3.3l2 1.4" stroke="var(--warning)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>',
+  info: '<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="6" fill="var(--series-1)"/><path d="M7 6v4M7 4h0" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>',
+  warning: '<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 1.2L13 12.5H1z" fill="var(--warning)"/><path d="M7 5.2v3.6M7 10.6h0" stroke="#000" stroke-width="1.6" stroke-linecap="round"/></svg>',
+  critical: '<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><rect x="1.5" y="1.5" width="11" height="11" rx="2.5" fill="var(--critical)"/><path d="M4.6 4.6l4.8 4.8M9.4 4.6l-4.8 4.8" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>',
+};
+const SEV = {ok: ["ok","норма","--good-text"], pending: ["pending","ожидание","--warning-text"],
+  info: ["info","инфо","--text-secondary"], warning: ["warning","внимание","--warning-text"], critical: ["critical","критично","--critical-text"]};
+const badge = (sev, text) => { const [i, l, c] = SEV[sev] || SEV.info;
+  return `<span class="st" style="color:var(${c})">${ICON[i]}${esc(text ?? l)}</span>`; };
+
+// ---------- графики (SVG, одна серия, без легенды) ----------
+function tipFor(el) { let t = el.querySelector(".tip"); if (!t) { t = document.createElement("div"); t.className = "tip"; el.appendChild(t); } return t; }
+function showTip(el, x, y, html) { const t = tipFor(el); t.innerHTML = html; t.style.opacity = 1;
+  const w = el.clientWidth, tw = t.offsetWidth; t.style.left = Math.min(Math.max(0, x - tw/2), w - tw) + "px"; t.style.top = (y - t.offsetHeight - 8) + "px"; }
+function hideTip(el) { const t = el.querySelector(".tip"); if (t) t.style.opacity = 0; }
+const niceMax = v => { if (v <= 4) return 4; const p = Math.pow(10, Math.floor(Math.log10(v))); for (const m of [1, 2, 2.5, 5, 10]) if (m*p >= v) return m*p; };
+// столбик с скруглением 4px только на конце данных, основание прямое
+const barV = (x, y, w, h) => h <= 0 ? "" : `M${x},${y+h}V${y+Math.min(4,h)}Q${x},${y} ${x+Math.min(4,w/2)},${y}H${x+w-Math.min(4,w/2)}Q${x+w},${y} ${x+w},${y+Math.min(4,h)}V${y+h}Z`;
+const barH = (x, y, w, h) => w <= 0 ? "" : `M${x},${y}H${x+w-Math.min(4,w)}Q${x+w},${y} ${x+w},${y+Math.min(4,h/2)}V${y+h-Math.min(4,h/2)}Q${x+w},${y+h} ${x+w-Math.min(4,w)},${y+h}H${x}Z`;
+
+function drawTraffic(data) {
+  const el = $("#traffic"), W = Math.max(320, el.clientWidth), H = 220, m = {l: 34, r: 8, t: 10, b: 26};
+  const n = data.length, max = niceMax(Math.max(1, ...data.map(d => d.in)));
+  const iw = W - m.l - m.r, ih = H - m.t - m.b, slot = iw / n, bw = Math.max(2, Math.min(36, slot - 2));
+  const y = v => m.t + ih - v / max * ih;
+  let g = "";
+  for (let i = 0; i <= 4; i++) { const v = max * i / 4, yy = y(v);
+    g += `<line x1="${m.l}" x2="${W-m.r}" y1="${yy}" y2="${yy}" stroke="var(--grid)"/>` +
+         `<text x="${m.l-6}" y="${yy+4}" text-anchor="end" font-size="11" fill="var(--text-muted)">${Math.round(v)}</text>`; }
+  const every = Math.ceil(n / Math.floor(iw / 44));
+  let bars = "", labels = "", hits = "";
+  data.forEach((d, i) => { const x = m.l + i*slot + (slot-bw)/2, yy = y(d.in);
+    bars += `<path d="${barV(x, yy, bw, m.t+ih-yy)}" fill="var(--series-1)"/>`;
+    if (i % every === 0) labels += `<text x="${x+bw/2}" y="${H-8}" text-anchor="middle" font-size="11" fill="var(--text-muted)">${esc(d.label)}</text>`;
+    hits += `<rect x="${m.l+i*slot}" y="${m.t}" width="${slot}" height="${ih}" fill="transparent" data-i="${i}"/>`; });
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Входы покупателей по интервалам">${g}` +
+    `<line x1="${m.l}" x2="${W-m.r}" y1="${m.t+ih}" y2="${m.t+ih}" stroke="var(--axis)"/>${bars}${labels}<g class="hits">${hits}</g></svg>`;
+  el.querySelectorAll(".hits rect").forEach(r => {
+    r.addEventListener("mousemove", e => { const d = data[+r.dataset.i], b = el.getBoundingClientRect();
+      showTip(el, e.clientX - b.left, e.clientY - b.top, `${esc(d.label)}<br>вошли <b>${d.in}</b> · вышли <b>${d.out}</b>`); });
+    r.addEventListener("mouseleave", () => hideTip(el)); });
+  $("#traffic-table").innerHTML = `<table><tr><th>Интервал</th><th class="num">Вошли</th><th class="num">Вышли</th></tr>` +
+    data.map(d => `<tr><td>${esc(d.label)}</td><td class="num">${d.in}</td><td class="num">${d.out}</td></tr>`).join("") + `</table>`;
+}
+
+function drawService(rows) {
+  const el = $("#service");
+  const data = rows.filter(r => r.median_wait_s != null);
+  if (!data.length) { el.innerHTML = `<div class="empty">Пока не было случаев ожидания без обслуживания${rows.length ? " — " + rows.map(r => `${esc(r.owner)}: обслужено ${r.served}`).join(", ") : ""}.</div>`; }
+  else {
+    const W = Math.max(300, el.clientWidth), rowH = 34, m = {l: 130, r: 64, t: 6, b: 22}, H = m.t + m.b + rowH * data.length;
+    const max = niceMax(Math.max(...data.map(d => d.p90_wait_s || d.median_wait_s)));
+    const iw = W - m.l - m.r, x = v => m.l + v / max * iw;
+    let g = "";
+    for (let i = 0; i <= 4; i++) { const v = max*i/4, xx = x(v);
+      g += `<line x1="${xx}" x2="${xx}" y1="${m.t}" y2="${H-m.b}" stroke="var(--grid)"/>` +
+           `<text x="${xx}" y="${H-6}" text-anchor="middle" font-size="11" fill="var(--text-muted)">${fmtS(v)}</text>`; }
+    let bars = "", hits = "";
+    data.forEach((d, i) => { const yy = m.t + i*rowH + 8, bh = rowH - 16;
+      bars += `<text x="${m.l-8}" y="${yy+bh/2+4}" text-anchor="end" font-size="12" fill="var(--text-primary)">${esc(d.owner)}</text>` +
+              `<path d="${barH(m.l, yy, x(d.median_wait_s)-m.l, bh)}" fill="var(--series-1)"/>` +
+              (d.p90_wait_s != null ? `<line x1="${x(d.p90_wait_s)}" x2="${x(d.p90_wait_s)}" y1="${yy-3}" y2="${yy+bh+3}" stroke="var(--text-secondary)" stroke-width="2"/>` : "") +
+              `<text x="${x(d.median_wait_s)+6}" y="${yy+bh/2+4}" font-size="12" fill="var(--text-secondary)">${fmtS(d.median_wait_s)}</text>`;
+      hits += `<rect x="0" y="${m.t+i*rowH}" width="${W}" height="${rowH}" fill="transparent" data-i="${i}"/>`; });
+    el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Ожидание без обслуживания по сотрудникам">${g}` +
+      `<line x1="${m.l}" x2="${m.l}" y1="${m.t}" y2="${H-m.b}" stroke="var(--axis)"/>${bars}<g class="hits">${hits}</g></svg>`;
+    el.querySelectorAll(".hits rect").forEach(r => {
+      r.addEventListener("mousemove", e => { const d = data[+r.dataset.i], b = el.getBoundingClientRect();
+        showTip(el, e.clientX - b.left, e.clientY - b.top, `<b>${esc(d.owner)}</b><br>медиана ${fmtS(d.median_wait_s)} · p90 ${fmtS(d.p90_wait_s)}<br>случаев ${d.waits} · обслужено ${d.served}`); });
+      r.addEventListener("mouseleave", () => hideTip(el)); });
+  }
+  $("#service-table").innerHTML = `<table><tr><th>Сотрудник / смена</th><th class="num">Обслужено</th><th class="num">Ждали</th><th class="num">Медиана</th><th class="num">p90</th><th class="num">Макс.</th></tr>` +
+    rows.map(r => `<tr><td>${esc(r.owner)}</td><td class="num">${r.served}</td><td class="num">${r.waits}</td><td class="num">${fmtS(r.median_wait_s)}</td><td class="num">${fmtS(r.p90_wait_s)}</td><td class="num">${fmtS(r.max_wait_s)}</td></tr>`).join("") + `</table>`;
+}
+
+document.querySelectorAll("[data-table]").forEach(b => b.addEventListener("click", () => {
+  const t = $("#" + b.dataset.table + "-table"), c = $("#" + b.dataset.table);
+  const show = t.hidden; t.hidden = !show; c.hidden = show; b.textContent = show ? "График" : "Таблица"; }));
+
+// ---------- данные ----------
+async function loadState() {
+  try { state = await (await fetch("/api/state")).json(); } catch { $("#clock").textContent = "нет связи с сервером"; return; }
+  $("#site").textContent = state.site.name;
+  document.title = "Store Vision · " + state.site.name;
+  $("#clock").textContent = `${new Date(state.now*1000).toLocaleString("ru-RU")} · ${state.site.timezone} · работает ${fmtS(state.uptime_s)}`;
+  if (state.frigate_ui) { const f = $("#frigate"); f.hidden = false; f.href = state.frigate_ui; }
+  const camState = {online: ["ok","онлайн"], starting: ["pending","запуск"], reconnecting: ["critical","переподключение"], stalled: ["warning","нет кадров"]};
+  $("#camchips").innerHTML = state.cameras.map(c => { const [s, l] = camState[c.state] || ["info", c.state];
+    return `<span class="chip" title="${esc(c.error)}">${ICON[s]} ${esc(c.id)} · ${l}${c.state === "online" ? ` · ${c.fps} к/с · ${c.infer_ms} мс` : ""}${c.slicing ? ` · ${esc(c.slicing)}` : ""}</span>`; }).join("");
+  const cust = state.cameras.reduce((a, c) => a + c.people.customer, 0), staff = state.cameras.reduce((a, c) => a + c.people.staff, 0);
+  $("#k-now").textContent = cust; $("#k-now-d").textContent = `покупателей · сотрудников: ${staff}`;
+  $("#objects").innerHTML = state.objects.length ? state.objects.map(o => `<div class="obj"><div class="n">${esc(o.id)}</div>
+      <div class="o">${esc(o.owner || "—")} · камера ${esc(o.camera)}</div>
+      <div style="margin-top:6px">${badge(o.severity, o.label)}</div><div class="t">${fmtS(o.for_s)} в состоянии</div></div>`).join("")
+    : `<div class="empty">Объектов с состояниями нет в конфиге.</div>`;
+  $("#zones").innerHTML = `<tr><th>Зона</th><th>Камера</th><th class="num">Покупатели</th><th class="num">Сотрудники</th></tr>` +
+    state.zones.map(z => `<tr><td>${esc(z.label)}</td><td>${esc(z.camera)}</td><td class="num">${z.customer}</td><td class="num">${z.staff}</td></tr>`).join("");
+  if (!$("#cams").children.length) $("#cams").innerHTML = state.cameras.map(c =>
+    `<div class="cam"><img alt="Камера ${esc(c.id)} с разметкой анализа" src="/api/stream/${encodeURIComponent(c.id)}"><span class="cap chip">${esc(c.id)}</span></div>`).join("");
+}
+
+async function loadStats() {
+  try { stats = await (await fetch(`/api/stats?range=${range}`)).json(); } catch { return; }
+  const label = {"1h": "за последний час", today: "сегодня", "7d": "за 7 дней"}[range];
+  $("#k-in").textContent = stats.traffic_total.in;
+  $("#k-in-d").textContent = `${label} · вышли ${stats.traffic_total.out}`;
+  const all = stats.service.filter(s => s.median_wait_s != null);
+  const worst = all.sort((a, b) => b.median_wait_s - a.median_wait_s)[0];
+  $("#k-wait").textContent = worst ? fmtS(worst.median_wait_s) : "—";
+  $("#k-wait-d").textContent = worst ? `дольше всех: ${worst.owner} · ${label}` : `не было случаев ${label}`;
+  const a = stats.alerts; $("#k-al").textContent = a.info + a.warning + a.critical;
+  $("#k-al-d").innerHTML = `${badge("critical", a.critical)} &nbsp; ${badge("warning", a.warning)} &nbsp; ${badge("info", a.info)}`;
+  drawTraffic(stats.traffic); drawService(stats.service);
+  $("#dwell").innerHTML = `<tr><th>Зона</th><th class="num">Визитов</th><th class="num">Медиана</th><th class="num">p90</th></tr>` +
+    (stats.dwell.length ? stats.dwell.map(d => `<tr><td>${esc(d.label)}</td><td class="num">${d.visits}</td><td class="num">${fmtS(d.median_s)}</td><td class="num">${fmtS(d.p90_s)}</td></tr>`).join("")
+      : `<tr><td colspan="4" class="empty">пока нет данных</td></tr>`);
+}
+
+async function loadAlerts() {
+  let al; try { al = await (await fetch("/api/alerts?limit=40")).json(); } catch { return; }
+  $("#al-count").textContent = al.length ? `последние ${al.length}` : "";
+  $("#alerts").innerHTML = al.length ? al.map(x => `<div class="al">
+      ${x.snapshot ? `<a href="/alerts/${encodeURIComponent(x.snapshot)}" target="_blank" rel="noopener"><img loading="lazy" alt="кадр оповещения" src="/alerts/${encodeURIComponent(x.snapshot)}"></a>` : `<div></div>`}
+      <div><div>${badge(x.severity)}</div><div class="m">${esc(x.message)}</div>
+      <div class="meta"><span>${fmtT(x.t)}</span><span>${esc(x.camera)}</span>${x.clip ? `<a href="${esc(x.clip)}" target="_blank" rel="noopener">клип из Frigate ↗</a>` : ""}</div></div></div>`).join("")
+    : `<div class="empty">Оповещений пока нет.</div>`;
+}
+
+document.querySelectorAll(".seg button").forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll(".seg button").forEach(x => x.setAttribute("aria-pressed", x === b));
+  range = b.dataset.r; loadStats(); }));
+window.addEventListener("resize", () => { if (stats) { drawTraffic(stats.traffic); drawService(stats.service); } });
+
+loadState(); loadStats(); loadAlerts();
+setInterval(loadState, 2000); setInterval(loadStats, 10000); setInterval(loadAlerts, 5000);
+</script>
+</body>
+</html>

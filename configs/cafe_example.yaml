@@ -1,0 +1,59 @@
+# Кафе с обслуживанием за столом. Шаблон: те же движок и операции, что у продуктового.
+# Камеры — RTSP регистратора (заглушки). Пороги — продовые.
+site:
+  id: cafe-example
+  name: "Кафе · зал"
+  vertical: cafe
+
+cameras:
+  - id: hall
+    source: rtsp://user:pass@192.168.1.10:554/Streaming/Channels/102   # substream
+    process_fps: 5
+    anchor: bottom
+    zones:
+      - {id: table_1, kind: table, label: "Стол 1", polygon: [[0.05, 0.55], [0.30, 0.55], [0.30, 0.85], [0.05, 0.85]]}
+      - {id: table_2, kind: table, label: "Стол 2", polygon: [[0.35, 0.55], [0.60, 0.55], [0.60, 0.85], [0.35, 0.85]]}
+      - {id: bar, kind: staff_area, label: "Бар", polygon: [[0.70, 0.20], [0.98, 0.20], [0.98, 0.50], [0.70, 0.50]]}
+
+staff:
+  uniform:                                   # чёрные фартуки официантов (подбирается по кадру)
+    hsv_ranges: [{lower: [0, 0, 0], upper: [180, 80, 55]}]
+    min_ratio: 0.45
+  zone: {zones: [bar], min_s: 30}
+
+machines:
+  table:
+    initial: free
+    states:
+      free: {label: "свободен"}
+      waiting_first:
+        label: "ждут первого подхода"
+        counts_as_service_wait: true
+        alerts:
+          - {after_s: 180, severity: warning,  message: "{object}: гости ждут официанта {wait} (секция: {owner})", notify: [console, telegram]}
+          - {after_s: 360, severity: critical, message: "{object}: {wait} без официанта — менеджеру", notify: [console, telegram]}
+      served: {label: "обслуживаются"}
+      waiting_repeat:
+        label: "давно не подходили"
+        counts_as_service_wait: true
+        alerts:
+          - {after_s: 120, severity: warning, message: "{object}: к гостям не подходили давно ({owner})", notify: [console, telegram]}
+      dirty:
+        label: "нужна уборка"
+        alerts:
+          - {after_s: 300, severity: warning, message: "{object}: стол не убран {wait}", notify: [console, telegram]}
+    transitions:
+      # гости — «клиенты» в зоне стола; официант — «сотрудник» в той же зоне ≥ 4 с = контакт
+      - {from: free, to: waiting_first, when: {occupancy: $seat, who: customer, op: ">=", value: 1}, for_s: 20}
+      - {from: [waiting_first, waiting_repeat], to: served, when: {contact: $seat, min_s: 4}}
+      - {from: served, to: waiting_repeat, when: {time_in_state: ">=", value: 600}}
+      - {from: [waiting_first, served, waiting_repeat], to: dirty,
+         when: {occupancy: $seat, who: customer, op: "==", value: 0}, for_s: 60}
+      - {from: dirty, to: free, when: {contact: $seat, min_s: 5}}
+
+objects:
+  - {id: "Стол 1", machine: table, camera: hall, owner: "Айгерим", zones: {seat: table_1}}
+  - {id: "Стол 2", machine: table, camera: hall, owner: "Данияр", zones: {seat: table_2}}
+
+rules: []
+output: {dir: out}

@@ -1,0 +1,20 @@
+{
+ "seed": 0,
+ "device": "cpu",
+ "epochs": 8,
+ "seg_len": 24,
+ "test_frames": 4846,
+ "train_segments": 22536,
+ "authors_normal_positive": {
+  "AUC-ROC": 62.93,
+  "AUC-PR": 82.2,
+  "EER": 0.443,
+  "PR_baseline": 68.3
+ },
+ "theft_positive": {
+  "AUC-ROC": 62.93,
+  "AUC-PR": 39.03,
+  "EER": 0.443,
+  "PR_baseline": 31.7
+ }
+}
