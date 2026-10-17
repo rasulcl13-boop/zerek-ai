@@ -1,16 +1,18 @@
 # Zerek AI — видеоаналитика для малого бизнеса на уже установленных камерах
 
-> **ҚАЗ.** Zerek AI дүкендегі, кафедегі, дәмханадағы бар камераларды «зерек көмекшіге» айналдырады:
+> **ҚАЗ.** Zerek AI дүкендегі, кафедегі, салондағы, ХҚКО мен АЖС-тағы бар камераларды «зерек көмекшіге» айналдырады:
 > келушілер ағынын санайды, кезекті, бос қалған кассаны, клиентке ешкім жақындамағанын байқап,
 > иесіне Telegram арқылы хабарлайды. Бет-әлпетті тану қолданылмайды.
 >
-> **ENG.** Zerek AI turns the cameras a small business already has into an attentive assistant: it counts
+> **ENG.** Zerek AI turns the cameras a small business already has — shops, cafés, salons, service centres,
+> petrol stations — into an attentive assistant: it counts
 > visitors, spots queues, an unattended till or a customer nobody has approached, and alerts the owner in
 > Telegram. No face recognition. Built for Digital Taraz Hackathon (Zhambyl Hub), track
 > *AI for SME & Local Business*.
 
-**Zerek** (каз. «зерек») — сообразительный, внимательный. Первый MVP — продуктовый магазин; дальше
-одежда, кафе, рестораны и другие бизнесы. Ядро общее, отрасль задаётся **только конфигом** (зоны,
+**Zerek** (каз. «зерек») — сообразительный, внимательный. Для любого бизнеса, где клиента надо вовремя
+встретить и обслужить: магазины и аптеки, кафе и рестораны, салоны, ЦОНы, банки, АЗС. Первый MVP — продуктовый
+магазин; кафе и одежда уже описаны конфигами. Ядро общее, отрасль задаётся **только конфигом** (зоны,
 линии, объекты с состояниями, правила) — новый YAML, а не новый код.
 
 ```
