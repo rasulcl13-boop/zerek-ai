@@ -1,6 +1,6 @@
 # Живой режим: камеры приходят RTSP-рестримом из Frigate (go2rtc :8554).
 # Сейчас это зацикленные демо-ролики; для реального магазина поменяйте потоки в frigate/config/config.yml,
-# а здесь — только зоны. Пороги — ДЕМО (короткие ролики), продовые значения см. configs/grocery_checkout.yaml.
+# а здесь — только зоны. Пороги — ДЕМО (короткие ролики: подтверждение 4 с, тревоги 8/20 с), продовые значения см. configs/grocery_checkout.yaml.
 # SAHI-нарезка (cameras[].slicing) — для камер, где важен подсчёт людей в толпе (Mall: ошибка 4,6 → 3,1).
 # На камере входа выключена: на CAVIAR она ухудшает счётчик двери (8 % → 19 % ошибок, ×4 время).
 # Включить: в камере добавить  slicing: {grid: [2, 2], overlap: 0.2}
@@ -167,13 +167,13 @@ machines:
         label: клиент ждёт, кассира нет
         counts_as_service_wait: true
         alerts:
-        - after_s: 3
+        - after_s: 8
           severity: warning
           message: '{object}: клиент ждёт {wait}, кассира нет'
           notify:
           - console
           - telegram
-        - after_s: 8
+        - after_s: 20
           severity: critical
           message: '{object}: без кассира уже {wait} — менеджеру'
           notify:
@@ -209,7 +209,7 @@ machines:
           who: staff
           op: ==
           value: 0
-      for_s: 2
+      for_s: 4
     - from:
       - serving
       - unattended
@@ -254,7 +254,7 @@ rules:
     dwell_max: queue_1
     who: customer
     op: '>='
-    value: 6
+    value: 10
   cooldown_s: 600
   severity: info
   message: 'Касса 1: клиент стоит в очереди {queue_1.dwell}'

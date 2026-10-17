@@ -28,3 +28,6 @@ research/stgnf/*
 !research/stgnf/prepare_poselift.py
 !research/stgnf/patch_compat.sh
 !research/stgnf/results/
+
+# питч: кадры из исследовательских наборов (Mall, MERL, CAVIAR) не распространяем
+pitch/

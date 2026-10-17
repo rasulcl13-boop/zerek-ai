@@ -157,6 +157,8 @@ const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;
 const fmtS = s => s == null ? "—" : s >= 60 ? `${Math.floor(s/60)} мин ${String(Math.round(s%60)).padStart(2,"0")} с` : `${Math.round(s)} с`;
 const fmtT = t => new Date(t*1000).toLocaleTimeString("ru-RU", {hour:"2-digit", minute:"2-digit", second:"2-digit"});
 let range = "today", state = null, stats = null;
+// ?snapshot — статичные кадры вместо MJPEG и без отложенной загрузки (для скриншотов и печати)
+const SNAP = new URLSearchParams(location.search).has("snapshot");
 
 // статус = иконка + подпись, никогда только цвет
 const ICON = {
@@ -259,7 +261,7 @@ async function loadState() {
   $("#zones").innerHTML = `<tr><th>Зона</th><th>Камера</th><th class="num">Покупатели</th><th class="num">Сотрудники</th></tr>` +
     state.zones.map(z => `<tr><td>${esc(z.label)}</td><td>${esc(z.camera)}</td><td class="num">${z.customer}</td><td class="num">${z.staff}</td></tr>`).join("");
   if (!$("#cams").children.length) $("#cams").innerHTML = state.cameras.map(c =>
-    `<div class="cam"><img alt="Камера ${esc(c.id)} с разметкой анализа" src="/api/stream/${encodeURIComponent(c.id)}"><span class="cap chip">${esc(c.id)}</span></div>`).join("");
+    `<div class="cam"><img alt="Камера ${esc(c.id)} с разметкой анализа" src="${SNAP ? `/api/frame/${encodeURIComponent(c.id)}.jpg?t=${Date.now()}` : `/api/stream/${encodeURIComponent(c.id)}`}"><span class="cap chip">${esc(c.id)}</span></div>`).join("");
 }
 
 async function loadStats() {
@@ -283,7 +285,7 @@ async function loadAlerts() {
   let al; try { al = await (await fetch("/api/alerts?limit=40")).json(); } catch { return; }
   $("#al-count").textContent = al.length ? `последние ${al.length}` : "";
   $("#alerts").innerHTML = al.length ? al.map(x => `<div class="al">
-      ${x.snapshot ? `<a href="/alerts/${encodeURIComponent(x.snapshot)}" target="_blank" rel="noopener"><img loading="lazy" alt="кадр оповещения" src="/alerts/${encodeURIComponent(x.snapshot)}"></a>` : `<div></div>`}
+      ${x.snapshot ? `<a href="/alerts/${encodeURIComponent(x.snapshot)}" target="_blank" rel="noopener"><img loading="${SNAP ? "eager" : "lazy"}" alt="кадр оповещения" src="/alerts/${encodeURIComponent(x.snapshot)}"></a>` : `<div></div>`}
       <div><div>${badge(x.severity)}</div><div class="m">${esc(x.message)}</div>
       <div class="meta"><span>${fmtT(x.t)}</span><span>${esc(x.camera)}</span>${x.clip ? `<a href="${esc(x.clip)}" target="_blank" rel="noopener">клип из Frigate ↗</a>` : ""}</div></div></div>`).join("")
     : `<div class="empty">Оповещений пока нет.</div>`;
